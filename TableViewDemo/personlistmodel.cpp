@@ -3,6 +3,7 @@
 #include <QMap>
 #include <QDebug>
 #include <algorithm>
+#include <random>
 
 // データホルダ
 
@@ -17,21 +18,16 @@ public:
 
 PersonListModel::PersonListModel(QObject *parent) : QAbstractListModel(parent), m_sortEnabled(false)
 {
-    Person *p = new Person;
-    p->number = 1;
-    p->name = "kanda";
-    p->age = 22;
-    m_list.append(p);
-    p = new Person;
-    p->number = 2;
-    p->name = "akabane";
-    p->age = 16;
-    m_list.append(p);
-    p = new Person;
-    p->number = 3;
-    p->name = "tokyo";
-    p->age = 88;
-    m_list.append(p);
+    const int max = 1000;
+    std::default_random_engine engine;
+    std::uniform_int_distribution<int> distribution(1, max);
+    for (int i = 0; i < max; i++) {
+        Person *p = new Person;
+        p->number = i + 1;
+        p->name = QString("name%1").arg(max - i + 1);
+        p->age = distribution(engine);
+        m_list.append(p);
+    }
 }
 
 PersonListModel::~PersonListModel()
@@ -105,7 +101,6 @@ void PersonListModel::sortRows()
     if (m_list.size() == 0) {
         return;
     }
-    beginResetModel();
     std::sort(m_list.begin(), m_list.end(), [&] (Person *left, Person *right) {
         bool result;
         if (m_sortOrder == Qt::AscendingOrder) {
@@ -127,7 +122,7 @@ void PersonListModel::sortRows()
         }
         return result;
     });
-    endResetModel();
+    emit dataChanged(index(0), index(m_list.size() - 1));
 }
 
 // 以下、プロパティのaccessor
