@@ -3,6 +3,7 @@
 
 #include <QAbstractListModel>
 #include <QList>
+#include <QSharedPointer>
 
 class Person;
 
@@ -47,7 +48,7 @@ public slots:
 
 private:
     // メンバ
-    QList<Person *> m_list;
+    QList<QSharedPointer<Person>> m_list;
     bool m_sortEnabled;
     int m_sortOrder;
     QString m_sortRole;

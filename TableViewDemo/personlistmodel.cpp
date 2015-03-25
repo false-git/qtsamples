@@ -22,7 +22,7 @@ PersonListModel::PersonListModel(QObject *parent) : QAbstractListModel(parent), 
     std::default_random_engine engine;
     std::uniform_int_distribution<int> distribution(1, max);
     for (int i = 0; i < max; i++) {
-        Person *p = new Person;
+        QSharedPointer<Person> p(new Person);
         p->number = i + 1;
         p->name = QString("name%1").arg(max - i + 1);
         p->age = distribution(engine);
@@ -32,9 +32,6 @@ PersonListModel::PersonListModel(QObject *parent) : QAbstractListModel(parent), 
 
 PersonListModel::~PersonListModel()
 {
-    for (int i = 0; i < m_list.size(); i++) {
-        delete m_list[i];
-    }
     m_list.clear();
 }
 
@@ -56,7 +53,7 @@ QVariant PersonListModel::get(int row) const
 
 void PersonListModel::appendRow(int number, const QString &name, int age)
 {
-    Person *p = new Person;
+    QSharedPointer<Person> p(new Person);
     p->number = number;
     p->name = name;
     p->age = age;
@@ -76,7 +73,7 @@ void PersonListModel::updateRow(int row, int number, const QString &name, int ag
     if (row < 0 || row >= m_list.size()) {
         return;
     }
-    Person *p = m_list[row];
+    QSharedPointer<Person> &p = m_list[row];
     p->number = number;
     p->name = name;
     p->age = age;
@@ -89,9 +86,7 @@ void PersonListModel::removeRow(int row)
         return;
     }
     beginRemoveRows(QModelIndex(), row, row);
-    Person *p = m_list[row];
     m_list.removeAt(row);
-    delete p;
     endRemoveRows();
 }
 
@@ -101,7 +96,7 @@ void PersonListModel::sortRows()
     if (m_list.size() == 0) {
         return;
     }
-    std::sort(m_list.begin(), m_list.end(), [&] (Person *left, Person *right) {
+    std::sort(m_list.begin(), m_list.end(), [&] (const QSharedPointer<Person> &left, const QSharedPointer<Person> &right) {
         bool result;
         if (m_sortOrder == Qt::AscendingOrder) {
             if (m_sortRole == "number") {
@@ -182,7 +177,7 @@ QVariant PersonListModel::data(const QModelIndex &index, int role) const
     if (index.row() < 0 || index.row() >= m_list.size()) {
         return QVariant();
     }
-    Person *data = m_list[index.row()];
+    const QSharedPointer<Person> &data = m_list[index.row()];
     switch (role) {
     case NumberRole:
         return data->number;
