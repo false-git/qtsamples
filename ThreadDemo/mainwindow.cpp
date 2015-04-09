@@ -22,6 +22,10 @@ MainWindow::MainWindow(QWidget *parent) :
     widget->setLayout(layout);
     setCentralWidget(widget);
 
+    // シグナルの引数を登録する
+    qRegisterMetaType<MyObject>();
+    qRegisterMetaType<QSharedPointer<MyObject>>();
+
     // シグナルとスロットを繋ぐ
     connect(button1, &QPushButton::clicked, this, &MainWindow::button1Clicked);
     connect(button2, &QPushButton::clicked, this, &MainWindow::button2Clicked);
@@ -51,6 +55,26 @@ void MainWindow::button3Clicked()
 {
     qDebug() << QThread::currentThreadId() << "button 3が押されたときに呼ばれるslotのスレッド";
     MyThread *t = new MyThread;
+    connect(t, &MyThread::intResult, this, [](int result) {
+        qDebug() << QThread::currentThreadId() << "intResult:" << result;
+    });
+    connect(t, &MyThread::stringResult, this, [](const QString &result) {
+        qDebug() << QThread::currentThreadId() << "stringResult:" << result;
+    });
+    connect(t, &MyThread::objectResult, this, [](MyObject result) {
+        qDebug() << QThread::currentThreadId() << "objectResult:" << result.i;
+    });
+    connect(t, &MyThread::object_pResult, this, [](MyObject *result) {
+        qDebug() << QThread::currentThreadId() << "object_pResult:" << result->i;
+        // resultがリークする
+    });
+    connect(t, &MyThread::object_spResult, this, [](QSharedPointer<MyObject> result) {
+        qDebug() << QThread::currentThreadId() << "object_spResult:" << result->i;
+        result->i = 9;
+    });
+    connect(t, &MyThread::object_spResult, this, [](QSharedPointer<MyObject> result) {
+        qDebug() << QThread::currentThreadId() << "object_spResult2:" << result->i;
+    });
     connect(t, &MyThread::finishCalculation, this, &MainWindow::someSlot3); // Qt::AutoConnection
     connect(t, &MyThread::finished, t, &MyThread::deleteLater);
     t->start();
