@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 #include <QAbstractButton>
+#include <QThread>
+#include "othertaskobject.h"
 
 class MainWindow : public QMainWindow
 {
@@ -13,19 +15,18 @@ public:
     ~MainWindow();
 
 signals:
-    void someSignal1();
-    void someSignal2();
 
 private slots:
     void button1Clicked();
     void button2Clicked();
     void button3Clicked();
+    void button4Clicked();
+    void button5Clicked();
     void someSlot1();
-    void someSlot2();
-    void someSlot3();
 
 private:
-
+    OtherTaskObject *otherTaskObject;
+    QThread otherTaskThread;
 };
 
 #endif // MAINWINDOW_H

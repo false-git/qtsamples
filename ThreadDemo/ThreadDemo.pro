@@ -13,9 +13,10 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    othertaskobject.cpp
 
 HEADERS  += mainwindow.h \
-    mythread.h
+    othertaskobject.h
 
 FORMS    +=

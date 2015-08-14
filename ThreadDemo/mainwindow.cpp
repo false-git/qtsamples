@@ -5,10 +5,8 @@
 #include <QThread>
 #include <QDebug>
 
-#include "mythread.h"
-
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent)
+    QMainWindow(parent), otherTaskThread(this)
 {
     // 画面部品を作る
     QWidget *widget = new QWidget;
@@ -19,55 +17,62 @@ MainWindow::MainWindow(QWidget *parent) :
     layout->addWidget(button2);
     QPushButton *button3 = new QPushButton("button 3");
     layout->addWidget(button3);
+    QPushButton *button4 = new QPushButton("button 4");
+    layout->addWidget(button4);
+    QPushButton *button5 = new QPushButton("button 5");
+    layout->addWidget(button5);
     widget->setLayout(layout);
     setCentralWidget(widget);
+
+    // otherTaskObjectを生成し、別スレッドに移す
+    otherTaskObject = new OtherTaskObject;
+    otherTaskObject->moveToThread(&otherTaskThread);
+    otherTaskThread.start();
 
     // シグナルとスロットを繋ぐ
     connect(button1, &QPushButton::clicked, this, &MainWindow::button1Clicked);
     connect(button2, &QPushButton::clicked, this, &MainWindow::button2Clicked);
     connect(button3, &QPushButton::clicked, this, &MainWindow::button3Clicked);
-    connect(this, &MainWindow::someSignal1, this, &MainWindow::someSlot1); // Qt::AutoConnection
-    connect(this, &MainWindow::someSignal2, this, &MainWindow::someSlot2, Qt::QueuedConnection);
+    connect(button4, &QPushButton::clicked, this, &MainWindow::button4Clicked);
+    connect(button5, &QPushButton::clicked, this, &MainWindow::button5Clicked);
+    connect(otherTaskObject, &OtherTaskObject::finishJob, this, &MainWindow::someSlot1);
 }
 
 MainWindow::~MainWindow()
 {
     qDebug() << QThread::currentThreadId() << "~MainWindow";
+    otherTaskThread.quit();
+    otherTaskThread.wait();
 }
 
 void MainWindow::button1Clicked()
 {
-    qDebug() << QThread::currentThreadId() << "button 1が押されたときに呼ばれるslotのスレッド";
-    emit someSignal1();
-    qDebug() << QThread::currentThreadId() << "emit完了!";
+    qDebug() << QThread::currentThreadId() << "call otherTaskObject->startJob1()";
+    otherTaskObject->startJob1();
 }
 void MainWindow::button2Clicked()
 {
-    qDebug() << QThread::currentThreadId() << "button 2が押されたときに呼ばれるslotのスレッド";
-    emit someSignal2();
-    qDebug() << QThread::currentThreadId() << "emit完了!";
+    qDebug() << QThread::currentThreadId() << "call otherTaskObject->startJobInternal1()";
+    otherTaskObject->startJobInternal1();
 }
 void MainWindow::button3Clicked()
 {
-    qDebug() << QThread::currentThreadId() << "button 3が押されたときに呼ばれるslotのスレッド";
-    MyThread *t = new MyThread;
-    connect(t, &MyThread::finishCalculation, this, &MainWindow::someSlot3); // Qt::AutoConnection
-    connect(t, &MyThread::finished, t, &MyThread::deleteLater);
-    t->start();
+    qDebug() << QThread::currentThreadId() << "call otherTaskObject->startJob2()";
+    otherTaskObject->startJob2();
+}
+void MainWindow::button4Clicked()
+{
+    qDebug() << QThread::currentThreadId() << "call otherTaskObject->startJobInternal2()";
+    otherTaskObject->startJobInternal2();
+}
+void MainWindow::button5Clicked()
+{
+    qDebug() << QThread::currentThreadId() << "call otherTaskObject->startLongJob()";
+    otherTaskObject->startLongJob();
 }
 
 void MainWindow::someSlot1()
 {
     qDebug() << QThread::currentThreadId() << "someSlot1が呼ばれたときのスレッド";
-}
-
-void MainWindow::someSlot2()
-{
-    qDebug() << QThread::currentThreadId() << "someSlot2が呼ばれたときのスレッド";
-}
-
-void MainWindow::someSlot3()
-{
-    qDebug() << QThread::currentThreadId() << "someSlot3が呼ばれたときのスレッド";
 }
 
