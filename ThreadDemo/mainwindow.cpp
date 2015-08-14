@@ -3,7 +3,8 @@
 #include <QVBoxLayout>
 #include <QPushButton>
 #include <QThread>
-#include <QDebug>
+
+void debug(const QString &message);
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent), otherTaskThread(this)
@@ -40,39 +41,39 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    qDebug() << QThread::currentThreadId() << "~MainWindow";
+    debug("~MainWindow");
     otherTaskThread.quit();
     otherTaskThread.wait();
 }
 
 void MainWindow::button1Clicked()
 {
-    qDebug() << QThread::currentThreadId() << "call otherTaskObject->startJob1()";
+    debug("call otherTaskObject->startJob1()");
     otherTaskObject->startJob1();
 }
 void MainWindow::button2Clicked()
 {
-    qDebug() << QThread::currentThreadId() << "call otherTaskObject->startJobInternal1()";
+    debug("call otherTaskObject->startJobInternal1()");
     otherTaskObject->startJobInternal1();
 }
 void MainWindow::button3Clicked()
 {
-    qDebug() << QThread::currentThreadId() << "call otherTaskObject->startJob2()";
+    debug("call otherTaskObject->startJob2()");
     otherTaskObject->startJob2();
 }
 void MainWindow::button4Clicked()
 {
-    qDebug() << QThread::currentThreadId() << "call otherTaskObject->startJobInternal2()";
+    debug("call otherTaskObject->startJobInternal2()");
     otherTaskObject->startJobInternal2();
 }
 void MainWindow::button5Clicked()
 {
-    qDebug() << QThread::currentThreadId() << "call otherTaskObject->startLongJob()";
+    debug("call otherTaskObject->startLongJob()");
     otherTaskObject->startLongJob();
 }
 
 void MainWindow::someSlot1()
 {
-    qDebug() << QThread::currentThreadId() << "someSlot1が呼ばれたときのスレッド";
+    debug("receive finished signal");
 }
 
